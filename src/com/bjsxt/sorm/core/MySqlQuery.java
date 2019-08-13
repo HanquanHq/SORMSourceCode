@@ -74,5 +74,12 @@ public class MySqlQuery extends Query {
 			System.out.println(e.toString());
 		}
 	}
+	
+	/**
+	 * 分页查询
+	 */
+	public Object queryPagenate(int pageNum,int size) {
+		return null;
+	}
 
 }

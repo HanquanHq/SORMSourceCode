@@ -5,6 +5,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -21,6 +22,34 @@ import com.bjsxt.vo.EmpVO;
  */
 @SuppressWarnings("all")
 public abstract class Query {
+	/**
+	 * 采用模板方法模式将JDBC操作封装成模板，便于重用
+	 * 
+	 * @param sql    sql语句
+	 * @param params sql的参数
+	 * @param clazz  记录要封装到的java类
+	 * @param back   CallBack的实现类，实现回调
+	 * @return
+	 */
+	public Object executeQueryTemplate(String sql, Object[] params, Class clazz, CallBack back) {
+		Connection conn = DBManager.getConn();
+		PreparedStatement ps = null;
+		ResultSet rs = null;
+		try {
+			ps = conn.prepareStatement(sql);
+			// 给sql设参
+			JDBCUtils.handleParams(ps, params);
+			System.out.println(ps);
+			rs = ps.executeQuery();
+
+			return back.doExecute(conn, ps, rs);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return null;
+		} finally {
+			DBManager.close(ps, conn);
+		}
+	}
 
 	/**
 	 * 直接执行一个DML(增/删/改)语句
@@ -142,40 +171,35 @@ public abstract class Query {
 	 * @param params sql的参数
 	 * @return 查询到的结果
 	 */
-	public List queryRows(String sql,Class clazz,Object[] params) {
-		Connection conn = DBManager.getConn();
-		List list = null; // 存储查询结果的容器
-		PreparedStatement ps = null;
-		ResultSet rs = null;
-		try {
-			ps = conn.prepareStatement(sql);
-			// 给sql设参
-			JDBCUtils.handleParams(ps, params);
-			System.out.println(ps);
-			rs = ps.executeQuery();
-
-			ResultSetMetaData metaData = rs.getMetaData();
-			// 多行
-			while (rs.next()) {
-				if (list == null) {
-					list = new ArrayList();
+	public List queryRows(final String sql,final Class clazz,final Object[] params) {
+		return (List) executeQueryTemplate(sql, params, clazz, new CallBack() {
+			@Override
+			public Object doExecute(Connection conn, PreparedStatement ps, ResultSet rs) {
+				List list = null;// 存储查询结果的容器
+				try {
+					ResultSetMetaData metaData = rs.getMetaData();
+					// 多行
+					while(rs.next()){
+						if(list==null){
+							list = new ArrayList();
+						}
+						
+						Object rowObj = clazz.newInstance(); // rowObj：暂存一条查询结果。调用javabean的无参构造器。
+						
+						// 多列 select username ,pwd,age from user where id>? and age>18
+						for (int i = 0; i < metaData.getColumnCount(); i++) {
+							String columnName = metaData.getColumnLabel(i + 1); // Java中的值
+							Object columnValue = rs.getObject(i + 1);// Mysql中的值
+							ReflectUtils.invokeSet(rowObj, columnName, columnValue);// 反射调用rowObj对象的setUsername(String uname)方法，将Mysql中的值存储到Java的值当中
+						}
+						list.add(rowObj);
+					}
+				} catch (Exception e) {
+					e.printStackTrace();
 				}
-				Object rowObj = clazz.newInstance(); // rowObj：暂存一条查询结果。调用javabean的无参构造器。
-				
-				//多列	select username ,pwd,age from user where id>? and age>18
-				for (int i = 0; i < metaData.getColumnCount(); i++) {
-					String columnName = metaData.getColumnLabel(i + 1); // Java中的值
-					Object columnValue = rs.getObject(i + 1);// Mysql中的值
-					ReflectUtils.invokeSet(rowObj, columnName, columnValue);//反射调用rowObj对象的setUsername(String uname)方法，将Mysql中的值存储到Java的值当中
-				}
-				list.add(rowObj);
+				return list;
 			}
-		} catch (Exception e) {
-			e.printStackTrace();
-		} finally {
-			DBManager.close(ps, conn);
-		}
-		return list;
+		});
 	}
 	
 	/**
@@ -197,25 +221,20 @@ public abstract class Query {
 	 * @return 查询到的结果
 	 */
 	public Object queryValue(String sql,Object[] params) {
-		Connection conn = DBManager.getConn();
-		Object value = null;    //存储查询结果的对象
-		PreparedStatement ps = null;
-		ResultSet rs = null;
-		try {
-			ps = conn.prepareStatement(sql);
-			//给sql设参
-			JDBCUtils.handleParams(ps, params);
-			System.out.println(ps);
-			rs = ps.executeQuery();
-			while(rs.next()){
-				value = rs.getObject(1);
+		return executeQueryTemplate(sql, params, null, new CallBack() {
+			@Override
+			public Object doExecute(Connection conn, PreparedStatement ps, ResultSet rs) {
+				Object value = null;
+				try {
+					while(rs.next()){
+						value = rs.getObject(1);
+					}
+				} catch (SQLException e) {
+					e.printStackTrace();
+				}
+				return value;
 			}
-		} catch (Exception e) {
-			e.printStackTrace();
-		}finally{
-			DBManager.close(ps, conn);
-		}
-		return value;
+		});
 	}
 	
 	/**
@@ -228,5 +247,12 @@ public abstract class Query {
 		return (Number) queryValue(sql, params);
 	}
 	
+	/**
+	 * 分页查询
+	 * @param pageNum
+	 * @param size
+	 * @return
+	 */
+	public abstract Object queryPagenate(int pageNum, int size);
 
 }
