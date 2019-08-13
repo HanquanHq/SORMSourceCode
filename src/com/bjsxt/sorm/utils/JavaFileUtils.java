@@ -21,6 +21,7 @@ import com.bjsxt.sorm.core.TableContext;
 import com.bjsxt.sorm.core.TypeConvertor;
 
 /**
+ * 在更新数据库表之后要先运行一下，才能正常做一些测试
  * 封装了生成Java文件(源代码)常用的操作
  * 
  * @author gaoqi www.sxt.cn
@@ -173,14 +174,23 @@ public class JavaFileUtils {
 		System.out.println("编译成功为0：" + result + " " + classPath);
 
 		// 位置转移
-		String fromPath = f.getAbsoluteFile() + "/" + StringUtils.firstChar2UpperCase(tableInfo.getTname()) + ".class";
+		String fromPath = f.getAbsoluteFile() + "/";
+		fromPath = fromPath + StringUtils.firstChar2UpperCase(tableInfo.getTname()) + ".class";
 		String toPath = fromPath.replaceFirst("\\\\src\\\\", "\\\\bin\\\\");
+		File ff = new File(toPath.substring(0, toPath.lastIndexOf('\\')>toPath.lastIndexOf('/')?toPath.lastIndexOf('\\'):toPath.lastIndexOf('/')));//为了拼接文件名。太蠢了
+		System.out.println("........." + ff);
+		if (!ff.exists()) {
+			ff.mkdirs();
+		}
 		System.out.println("---" + fromPath);
 		System.out.println(">>>" + toPath);
 		copy(fromPath, toPath);
 
 		//C:\Users\Bug\eclipse-workspace3\SORMSourceCode\bin\com\bjsxt\po\Emp.src
 		//C:\Users\Bug\eclipse-workspace3\SORMSourceCode\src\com\bjsxt\po\Emp.java
+		
+		//C:\Users\Bug\eclipse-workspace3\SORM0.8\src\com\bjsxt\po
+		//C:\Users\Bug\eclipse-workspace3\SORM0.8\bin\com\bjsxt\po\Dept.class
 	}
 	
 	/**
