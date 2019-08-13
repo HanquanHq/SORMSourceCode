@@ -7,6 +7,7 @@ public class Emp {
 
 	private String empname;
 	private java.sql.Date birthday;
+	private Integer bonus;
 	private Integer deptid;
 	private Integer id;
 	private Integer salary;
@@ -18,6 +19,9 @@ public class Emp {
 	}
 	public java.sql.Date getBirthday(){
 		return birthday;
+	}
+	public Integer getBonus(){
+		return bonus;
 	}
 	public Integer getDeptid(){
 		return deptid;
@@ -37,6 +41,9 @@ public class Emp {
 	public void setBirthday(java.sql.Date birthday){
 		this.birthday=birthday;
 	}
+	public void setBonus(Integer bonus){
+		this.bonus=bonus;
+	}
 	public void setDeptid(Integer deptid){
 		this.deptid=deptid;
 	}
@@ -50,6 +57,6 @@ public class Emp {
 		this.age=age;
 	}
 	public String toString() {
-		return "" + empname+"\t"+birthday+"\t"+deptid+"\t"+id+"\t"+salary+"\t"+age;
+		return "" + empname+"\t"+birthday+"\t"+bonus+"\t"+deptid+"\t"+id+"\t"+salary+"\t"+age;
 	}
 }

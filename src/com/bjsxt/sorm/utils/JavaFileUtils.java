@@ -168,10 +168,10 @@ public class JavaFileUtils {
 //		JavaFieldGetSet f = createFieldGetSetSRC(ci,new MySqlTypeConvertor());
 //		System.out.println(f);
 
-		Map<String, TableInfo> map = TableContext.tables;
-		for (TableInfo t : map.values()) {
-			System.out.println("createJavaPOFile: " + t.getTname());
-			createJavaPOFile(t, new MySqlTypeConvertor());
-		}
+		Map<String, TableInfo> map = TableContext.tables;//静态初始化块已经含有：更新po包下的内容、加载po包下面的类，所以这里不需要再手动调用createJavaPOFile
+//		for (TableInfo t : map.values()) {
+//			System.out.println("createJavaPOFile: " + t.getTname());
+//			createJavaPOFile(t, new MySqlTypeConvertor());
+//		}
 	}
 }

@@ -71,7 +71,9 @@ public class TableContext {
 		// 更新类结构
 		updateJavaPOFile();
 
-		// 加载po包下面所有的类，便于重用，提高效率！
+		// 加载po包下面所有的类，便于重用，提高效率
+		// 如果po包下面的.java文件刚生成，此时还没有被编译过啊，这里是无法加载的吧，会抛出ClassNotFoundException异常
+		// 所以我觉得，当数据库表信息更新之后，首先要运行JavaFileUtils是必要的准备动作，然后才能执行sql语句，或者在updateJavaPOFile()执行之后，把po下面的类动态的编译一下
 		loadPOTables();
 	}
 
@@ -81,7 +83,7 @@ public class TableContext {
 	public static void updateJavaPOFile() {
 		Map<String, TableInfo> map = TableContext.tables;
 		for (TableInfo t : map.values()) {
-			JavaFileUtils.createJavaPOFile(t, new MySqlTypeConvertor());
+			JavaFileUtils.createJavaPOFile(t, new MySqlTypeConvertor());//自动生成类的.java文件
 		}
 	}
 
