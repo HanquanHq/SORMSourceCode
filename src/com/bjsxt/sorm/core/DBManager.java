@@ -9,23 +9,30 @@ import java.sql.Statement;
 import java.util.Properties;
 
 import com.bjsxt.sorm.bean.Configuration;
+import com.bjsxt.sorm.pool.DBConnPool;
 
 /**
- * 根据配置信息，维持连接对象的管理(增加连接池功能)
+ * 根据db.properties配置信息，维持连接对象的管理(增加连接池功能)
  * @author Administrator
  *
  */
 public class DBManager {
+	/**
+	 * 配置信息
+	 */
 	private static Configuration conf;
-	
-	static {  //静态代码块
+	/**
+	 * 连接池
+	 */
+	private static DBConnPool pool;
+	static {
 		Properties pros = new Properties();
 		try {
 			pros.load(Thread.currentThread().getContextClassLoader().getResourceAsStream("db.properties"));
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		
+		// 读取、加载所有的配置信息
 		conf = new Configuration();
 		conf.setDriver(pros.getProperty("driver"));
 		conf.setPoPackage(pros.getProperty("poPackage"));
@@ -35,9 +42,18 @@ public class DBManager {
 		conf.setUser(pros.getProperty("user"));
 		conf.setUsingDB(pros.getProperty("usingDB"));
 		conf.setQueryClass(pros.getProperty("queryClass"));
+		conf.setPoolMinSize(Integer.parseInt(pros.getProperty("poolMinSize")));
+		conf.setPoolMaxSize(Integer.parseInt(pros.getProperty("poolMaxSize")));
+
+		// 加载TableContext类
+		System.out.println("加载"+TableContext.class);
 	}
-	
-	public static Connection getConn(){
+
+	/**
+	 * 创造一个获取数据库连接，供连接池使用
+	 * @return
+	 */
+	public static Connection createConn(){
 		try {
 			Class.forName(conf.getDriver());
 			return DriverManager.getConnection(conf.getUrl(),
@@ -48,6 +64,16 @@ public class DBManager {
 		}
 	}
 	
+	/**
+	 * 获取数据库连接：使用连接池
+	 * @return
+	 */
+	public static Connection getConn() {
+		if (pool == null) {
+			pool = new DBConnPool();
+		}
+		return pool.getConnection();
+	}
 	
 	public static void close(ResultSet rs,Statement ps,Connection conn){
 		try {
@@ -64,13 +90,14 @@ public class DBManager {
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-		try {
-			if(conn!=null){
-				conn.close();
-			}
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
+//		try {
+//			if(conn!=null){
+//				conn.close();
+//			}
+//		} catch (SQLException e) {
+//			e.printStackTrace();
+//		}
+		pool.close(conn);
 	}
 	
 	public static void close(Statement ps,Connection conn){
@@ -81,22 +108,24 @@ public class DBManager {
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-		try {
-			if(conn!=null){
-				conn.close();
-			}
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
+//		try {
+//			if(conn!=null){
+//				conn.close();
+//			}
+//		} catch (SQLException e) {
+//			e.printStackTrace();
+//		}
+		pool.close(conn);
 	}
 	public static void close(Connection conn){
-		try {
-			if(conn!=null){
-				conn.close();
-			}
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
+//		try {
+//			if(conn!=null){
+//				conn.close();
+//			}
+//		} catch (SQLException e) {
+//			e.printStackTrace();
+//		}
+		pool.close(conn);
 	}
 	
 	/**
@@ -106,6 +135,4 @@ public class DBManager {
 	public static Configuration getConf(){
 		return conf;
 	}
-	
-	
 }

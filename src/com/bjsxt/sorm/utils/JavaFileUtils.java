@@ -2,17 +2,21 @@ package com.bjsxt.sorm.utils;
 
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import javax.tools.JavaCompiler;
+import javax.tools.ToolProvider;
+
 import com.bjsxt.sorm.bean.ColumnInfo;
 import com.bjsxt.sorm.bean.JavaFieldGetSet;
 import com.bjsxt.sorm.bean.TableInfo;
 import com.bjsxt.sorm.core.DBManager;
-import com.bjsxt.sorm.core.MySqlTypeConvertor;
 import com.bjsxt.sorm.core.TableContext;
 import com.bjsxt.sorm.core.TypeConvertor;
 
@@ -137,6 +141,7 @@ public class JavaFileUtils {
 		String src = createJavaSrc(tableInfo, convertor);
 		String srcPath = DBManager.getConf().getSrcPath() + "/";
 		String packagePath = DBManager.getConf().getPoPackage().replaceAll("\\.", "/");
+		String classPath=null;
 		File f = new File(srcPath + packagePath);
 
 		if (!f.exists()) { // 如果指定目录不存在，则帮助用户建立
@@ -146,7 +151,7 @@ public class JavaFileUtils {
 		BufferedWriter bw = null;
 
 		try {
-			String classPath = f.getAbsoluteFile() + "/" + StringUtils.firstChar2UpperCase(tableInfo.getTname()) + ".java";
+			classPath = f.getAbsoluteFile() + "/" + StringUtils.firstChar2UpperCase(tableInfo.getTname()) + ".java";
 			bw = new BufferedWriter(new FileWriter(classPath));
 			bw.write(src);
 			System.out.println("建立表" + tableInfo.getTname() + "对应的java类：" + classPath);
@@ -161,7 +166,42 @@ public class JavaFileUtils {
 				e.printStackTrace();
 			}
 		}
+		
+		// 动态编译
+		JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
+		int result = compiler.run(null, null, null, new String[] { classPath });
+		System.out.println("编译成功为0：" + result + " " + classPath);
+
+		// 位置转移
+		String fromPath = f.getAbsoluteFile() + "/" + StringUtils.firstChar2UpperCase(tableInfo.getTname()) + ".class";
+		String toPath = fromPath.replaceFirst("\\\\src\\\\", "\\\\bin\\\\");
+		System.out.println("---" + fromPath);
+		System.out.println(">>>" + toPath);
+		copy(fromPath, toPath);
+
+		//C:\Users\Bug\eclipse-workspace3\SORMSourceCode\bin\com\bjsxt\po\Emp.src
+		//C:\Users\Bug\eclipse-workspace3\SORMSourceCode\src\com\bjsxt\po\Emp.java
 	}
+	
+	/**
+	 * 复制文件
+	 * @param from	文件来源路径
+	 * @param to	文件目标路径
+	 */
+	public static void copy(String from, String to) {
+		try (FileInputStream fis = new FileInputStream(from); FileOutputStream fos = new FileOutputStream(to)) {
+			byte[] bbuf = new byte[32];
+			int hasRead = 0;
+			// 循环从输入流中取出数据
+			while ((hasRead = fis.read(bbuf)) > 0) {
+				// 读多少，写多少
+				fos.write(bbuf, 0, hasRead);
+			}
+		} catch (IOException ioe) {
+			ioe.printStackTrace();
+		}
+	}
+
 
 	public static void main(String[] args) {
 //		ColumnInfo ci = new ColumnInfo("id", "int", 0);

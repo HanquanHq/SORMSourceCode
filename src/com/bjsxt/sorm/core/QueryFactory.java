@@ -1,6 +1,7 @@
 package com.bjsxt.sorm.core;
 
 /**
+ * QueryFactory是所有类的入口，是最先加载的
  * 需要在配置文件中配置queryClass
  * 创建Query对象的工厂类。 对于不同的数据库，根据配置信息配置不同的Query对象。 
  * 使用克隆模式、单例模式、工厂模式。

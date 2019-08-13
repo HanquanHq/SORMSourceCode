@@ -74,7 +74,11 @@ public class TableContext {
 		// 加载po包下面所有的类，便于重用，提高效率
 		// 如果po包下面的.java文件刚生成，此时还没有被编译过啊，这里是无法加载的吧，会抛出ClassNotFoundException异常
 		// 所以我觉得，当数据库表信息更新之后，首先要运行JavaFileUtils是必要的准备动作，然后才能执行sql语句，或者在updateJavaPOFile()执行之后，把po下面的类动态的编译一下
+		//2019-8-13 22:48:00已解决：不抛异常了，之前的分析是对的。解决方式：在updateJavaPOFile()执行之后，把po下面的类动态的编译一下，因为无法指定路径，所有编译之后再把文件复制到bin中。
+		//过程中注意一下流的关闭问题。不关闭流的话，可能无法读取某些文件。
 		loadPOTables();
+		
+		System.out.println("TableContext完成加载，已根据表结构生成java文件");
 	}
 
 	/**
