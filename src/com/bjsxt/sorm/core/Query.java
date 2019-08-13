@@ -16,12 +16,12 @@ import com.bjsxt.sorm.utils.ReflectUtils;
 import com.bjsxt.vo.EmpVO;
 
 /**
- * 负责查询（对外提供服务的核心类）
+ * 负责增删改查（对外提供服务的核心类）
  * @author gaoqi ww.sxt.cn
  *
  */
 @SuppressWarnings("all")
-public abstract class Query {
+public abstract class Query implements Cloneable{
 	/**
 	 * 采用模板方法模式将JDBC操作封装成模板，便于重用
 	 * 
@@ -255,4 +255,10 @@ public abstract class Query {
 	 */
 	public abstract Object queryPagenate(int pageNum, int size);
 
+	@Override
+	protected Object clone() throws CloneNotSupportedException {
+		return super.clone();
+	}
+
+	
 }
