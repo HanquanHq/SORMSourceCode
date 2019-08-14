@@ -28,14 +28,11 @@ public class Test2 {
 			System.out.println(e.toString());
 		}
 	}
-	
+
 	public static void select02() {
 		Query q = QueryFactory.createQuery();
 		List<Emp> list = new ArrayList<Emp>();
-		list.add( (Emp) q.queryUniqueRow("select * from emp where id=?", Emp.class, new Object[] { 2 }));
-
-		System.out.println(list.toString());
-		System.out.println( q.queryUniqueRow("select * from emp where id>?", Emp.class, new Object[] {2}));
+		System.out.println(q.queryUniqueRow("select * from emp where id>?", Emp.class, new Object[] { 2 }));
 	}
 
 	public static void main(String[] args) {
