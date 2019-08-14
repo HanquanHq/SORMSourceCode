@@ -1,10 +1,12 @@
 package com.bjsxt.test;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.tools.JavaCompiler;
 import javax.tools.ToolProvider;
 
+import com.bjsxt.po.Emp;
 import com.bjsxt.sorm.core.MySqlQuery;
 import com.bjsxt.sorm.core.Query;
 import com.bjsxt.sorm.core.QueryFactory;
@@ -26,12 +28,18 @@ public class Test2 {
 			System.out.println(e.toString());
 		}
 	}
+	
+	public static void select02() {
+		Query q = QueryFactory.createQuery();
+		List<Emp> list = new ArrayList<Emp>();
+		list.add( (Emp) q.queryUniqueRow("select * from emp where id=?", Emp.class, new Object[] { 2 }));
+
+		System.out.println(list.toString());
+		System.out.println( q.queryUniqueRow("select * from emp where id>?", Emp.class, new Object[] {2}));
+	}
 
 	public static void main(String[] args) {
-		test01();
-//		String classPath="C:\\Users\\Bug\\eclipse-workspace3\\SORMSourceCode\\src\\com\\bjsxt\\po/Dept.java";
-//		JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
-//		int result = compiler.run(null, null, null, classPath);
-//		System.out.println("编译成功为0：" + result+" "+classPath);
+		//test01();
+select02();
 	}
 }
